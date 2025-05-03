@@ -38,9 +38,10 @@ class SurvivorRegistrationForm(UserCreationForm):
         
         if commit:
             user.save()
-            SurvivorProfile.objects.create(
+            # First check if a profile already exists before creating one
+            SurvivorProfile.objects.get_or_create(
                 user=user,
-                bio=self.cleaned_data.get('bio', '')
+                defaults={'bio': self.cleaned_data.get('bio', '')}
             )
         return user
 
@@ -86,11 +87,14 @@ class CounselorRegistrationForm(UserCreationForm):
         
         if commit:
             user.save()
-            CounselorProfile.objects.create(
+            # First check if a profile already exists before creating one
+            CounselorProfile.objects.get_or_create(
                 user=user,
-                license_number=self.cleaned_data['license_number'],
-                specialization=self.cleaned_data['specialization'],
-                bio=self.cleaned_data['bio']
+                defaults={
+                    'license_number': self.cleaned_data['license_number'],
+                    'specialization': self.cleaned_data['specialization'],
+                    'bio': self.cleaned_data['bio']
+                }
             )
         return user
 

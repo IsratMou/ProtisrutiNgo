@@ -41,15 +41,19 @@ def login_redirect_view(request):
         return redirect('counselor_dashboard')
     else:
         return redirect('home')
-
 def register_user_view(request):
     """View for survivor registration"""
     if request.method == 'POST':
         form = SurvivorRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            messages.success(request, 'Account created successfully! You can now log in.')
-            return redirect('login')
+            try:
+                user = form.save()
+                messages.success(request, 'Account created successfully! You can now log in.')
+                return redirect('login')
+            except Exception as e:
+                # Handle database errors gracefully
+                messages.error(request, f'Registration failed. Please try again or contact support.')
+                print(f"Error during survivor registration: {str(e)}")
     else:
         form = SurvivorRegistrationForm()
     return render(request, 'register_user.html', {'form': form})
@@ -59,13 +63,17 @@ def register_counselor_view(request):
     if request.method == 'POST':
         form = CounselorRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            messages.success(request, 'Your registration has been submitted. Our admin will review your credentials.')
-            return redirect('login')
+            try:
+                user = form.save()
+                messages.success(request, 'Your registration has been submitted. Our admin will review your credentials.')
+                return redirect('login')
+            except Exception as e:
+                # Handle database errors gracefully
+                messages.error(request, f'Registration failed. Please try again or contact support.')
+                print(f"Error during counselor registration: {str(e)}")
     else:
         form = CounselorRegistrationForm()
     return render(request, 'register_counselor.html', {'form': form})
-
 @login_required
 def user_dashboard(request):
     """View for survivor dashboard"""
