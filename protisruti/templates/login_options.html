@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign Up Options - PROTISRUTI{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="content-box text-center">
+                <h2>Choose Registration Type</h2>
+                <p class="mb-4">Please select how you want to join our community</p>
+                
+                <div class="row mt-5">
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h3>Survivor</h3>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <p>Join our supportive community and connect with professional counselors anonymously.</p>
+                                <div class="mt-auto">
+                                    <a href="{% url 'register_user' %}" class="btn btn-primary">Register as Survivor</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h3>Counselor</h3>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <p>Join our network of professionals dedicated to supporting survivors.</p>
+                                <div class="mt-auto">
+                                    <a href="{% url 'register_counselor' %}" class="btn btn-primary">Register as Counselor</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
