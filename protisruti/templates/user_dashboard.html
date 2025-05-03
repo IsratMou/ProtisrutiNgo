@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Survivor Dashboard - PROTISRUTI{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="content-box">
+                <h1>Welcome, {{ user.username }}</h1>
+                <p>This is your safe space. From here, you can connect with counselors and access support resources.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="content-box">
+                <h2>Your Dashboard</h2>
+                <p>This dashboard is currently under development. Soon you will be able to:</p>
+                <ul>
+                    <li>Browse and connect with counselors</li>
+                    <li>Schedule counseling sessions</li>
+                    <li>Access healing resources</li>
+                    <li>Join support communities</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
