@@ -1,0 +1,143 @@
+/* Protisruti Custom Styles */
+
+/* Color Variables */
+:root {
+    --lavender: #9c81bc;
+    --light-lavender: #b3a0cc;
+    --baby-pink: #ffc0cb;
+    --light-pink: #ffdbdb;
+    --white: #ffffff;
+}
+
+/* Global Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: var(--white);
+    color: #333;
+}
+
+.navbar {
+    background-color: var(--lavender);
+}
+
+.navbar .navbar-brand,
+.navbar .nav-link {
+    color: var(--white);
+}
+
+.navbar .nav-link:hover {
+    color: var(--light-pink);
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(to right, var(--light-pink), var(--light-lavender));
+    padding: 60px 20px;
+    text-align: center;
+    color: #333;
+}
+
+.section-heading {
+    margin-bottom: 30px;
+}
+
+/* Cards & Boxes */
+.content-box {
+    background-color: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.card-header {
+    background-color: var(--light-pink);
+    color: #333;
+}
+
+.card-section {
+    margin: 40px 0;
+}
+
+/* Forms */
+.form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 30px;
+}
+
+.form-control:focus {
+    border-color: var(--lavender);
+    box-shadow: 0 0 0 0.25rem rgba(156, 129, 188, 0.25);
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--lavender);
+    border-color: var(--lavender);
+}
+
+.btn-primary:hover {
+    background-color: var(--light-lavender);
+    border-color: var(--light-lavender);
+}
+
+.btn-secondary {
+    background-color: var(--baby-pink);
+    border-color: var(--baby-pink);
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background-color: var(--light-pink);
+    border-color: var(--light-pink);
+    color: #333;
+}
+
+/* Footer */
+footer {
+    background-color: var(--lavender);
+    color: var(--white);
+    padding: 20px 0;
+    text-align: center;
+}
+
+/* Role-specific sections */
+.role-section {
+    background-color: var(--light-pink);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.role-section h3 {
+    color: #333;
+}
+
+/* Login/Registration pages */
+.auth-container {
+    max-width: 450px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.auth-container h2 {
+    color: var(--lavender);
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-option {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Error messages */
+.error-message {
+    color: #dc3545;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
