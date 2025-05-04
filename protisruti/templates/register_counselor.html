@@ -16,7 +16,7 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            {{ form.username|as_crispy_field }}
+                            {{ form.name|as_crispy_field }}
                         </div>
                         <div class="col-md-6 mb-3">
                             {{ form.email|as_crispy_field }}
@@ -25,24 +25,11 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            {{ form.password1|as_crispy_field }}
+                            {{ form.years_of_experience|as_crispy_field }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            {{ form.password2|as_crispy_field }}
+                            {{ form.expertise_sector|as_crispy_field }}
                         </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form.license_number|as_crispy_field }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form.specialization|as_crispy_field }}
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.bio|as_crispy_field }}
                     </div>
                     
                     <div class="alert alert-info">
@@ -62,3 +49,4 @@
     </div>
 </div>
 {% endblock %}
+
