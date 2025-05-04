@@ -71,6 +71,7 @@ class SurvivorProfile(models.Model):
     """
     Profile for Survivor users with additional fields.
     """
+    objects = None
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='survivor_profile')
     bio = models.TextField(blank=True, null=True)
 
@@ -82,6 +83,7 @@ class CounselorProfile(models.Model):
     """
     Profile for Counselor users with additional fields.
     """
+    objects = None
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='counselor_profile')
     license_number = models.CharField(max_length=100)
     specialization = models.CharField(max_length=200)

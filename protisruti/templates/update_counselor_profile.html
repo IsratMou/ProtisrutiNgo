@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
-{% load crispy_forms_filters %}
-{% load crispy_forms_tags %}
+{#% load crispy_forms_filters %#}
+{#% load crispy_forms_tags %#}
 
 {% block title %}Update Your Profile - PROTISRUTI{% endblock %}
 
@@ -37,6 +37,10 @@
 
                             <div class="mb-4">
                                 {{ form.license_number|as_crispy_field }}
+                                <div class="form-text">
+                                    <i class="fas fa-id-card me-1"></i>
+                                    Your professional license number is required for verification.
+                                </div>
                                 <div class="form-text">
                                     <i class="fas fa-info-circle me-1"></i>
                                     Enter your professional license number for verification purposes.

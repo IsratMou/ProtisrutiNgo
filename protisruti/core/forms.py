@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.core.exceptions import ValidationError
+
 from .models import CustomUser, SurvivorProfile, CounselorProfile
 
 
@@ -76,6 +76,10 @@ class CounselorRegistrationForm(UserCreationForm):
         max_length=200,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Specialization'})
     )
+    years_of_experience = forms.IntegerField(
+        min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Years of Experience'})
+    )
     bio = forms.CharField(
         widget=forms.Textarea(
             attrs={'class': 'form-control', 'placeholder': 'Tell us about your experience', 'rows': 3})
@@ -97,10 +101,24 @@ class CounselorRegistrationForm(UserCreationForm):
                 defaults={
                     'license_number': self.cleaned_data['license_number'],
                     'specialization': self.cleaned_data['specialization'],
+                    'years_of_experience': self.cleaned_data['years_of_experience'],
                     'bio': self.cleaned_data['bio']
                 }
             )
         return user
+
+
+class LoginForm(forms.Form):
+    """
+    Simple login form for user authentication
+    """
+    username = forms.CharField(
+        max_length=254,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'})
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'})
+    )
 
 
 class CustomLoginForm(AuthenticationForm):
@@ -114,6 +132,42 @@ class CustomLoginForm(AuthenticationForm):
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'})
     )
+
+
+class UserRegistrationForm(UserCreationForm):
+    """
+    Form for general user registration (simplified version of SurvivorRegistrationForm)
+    """
+    email = forms.EmailField(
+        max_length=254,
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'})
+    )
+    username = forms.CharField(
+        max_length=30,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'})
+    )
+    password1 = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'})
+    )
+    password2 = forms.CharField(
+        label="Confirm Password",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm Password'})
+    )
+
+    class Meta:
+        model = CustomUser
+        fields = ('email', 'username', 'password1', 'password2')
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.user_type = 'survivor'
+
+        if commit:
+            user.save()
+            # Create a basic profile
+            SurvivorProfile.objects.get_or_create(user=user)
+        return user
 
 
 class CounselorVerificationForm(forms.ModelForm):
