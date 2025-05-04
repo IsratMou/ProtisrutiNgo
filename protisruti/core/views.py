@@ -1,87 +1,259 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django import forms
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.views.generic import TemplateView
-from .forms import SurvivorRegistrationForm, CounselorRegistrationForm, CustomLoginForm
-from .models import CustomUser
+from django.http import JsonResponse
+from django.core.exceptions import PermissionDenied
+from django.views.decorators.http import require_http_methods
+from django.views import View
+from django.contrib.auth import authenticate, login
+from .models import CustomUser, CounselorProfile, Assignment
+from .forms import (
+    CounselorVerificationForm,
+    CounselorProfileForm,
+    UserRegistrationForm,  # Will be defined in forms.py
+    CounselorRegistrationForm,
+    LoginForm,
+)
+
+
+def is_admin(user):
+    """Check if user has admin privileges"""
+    return user.is_superuser or user.user_type == 'admin'
+
+
+def is_counselor(user):
+    """Check if user is a counselor"""
+    return user.user_type == 'counselor' and user.counselorprofile.is_verified
+
 
 def home_view(request):
-    """View for the homepage"""
+    """Home page view"""
     return render(request, 'home.html')
 
-class LoginOptionsView(TemplateView):
-    """View to choose between survivor and counselor login"""
-    template_name = 'login_options.html'
+
+class LoginOptionsView(View):
+    """View to display login options for different user types"""
+
+    def get(self, request):
+        return render(request, 'login_options.html')
+
 
 def login_view(request):
-    """View for user login"""
+    """User login view"""
     if request.method == 'POST':
-        form = CustomLoginForm(request, data=request.POST)
+        form = LoginForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(request, username=email, password=password)
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
                 return redirect('login_redirect')
             else:
-                messages.error(request, "Invalid email or password.")
-        else:
-            messages.error(request, "Invalid email or password.")
+                messages.error(request, "Invalid username or password")
     else:
-        form = CustomLoginForm()
+        form = LoginForm()
     return render(request, 'login.html', {'form': form})
 
+
 def login_redirect_view(request):
-    """Redirects users based on their user type after login"""
-    if request.user.is_survivor():
+    """Redirect users to appropriate dashboard based on user type"""
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if request.user.user_type == 'survivor':
         return redirect('user_dashboard')
-    elif request.user.is_counselor():
+    elif request.user.user_type == 'counselor':
         return redirect('counselor_dashboard')
+    elif request.user.is_superuser or request.user.user_type == 'admin':
+        return redirect('admin:index')
     else:
+        # Default fallback
         return redirect('home')
+
+
 def register_user_view(request):
-    """View for survivor registration"""
+    """Registration view for survivors/users"""
     if request.method == 'POST':
-        form = SurvivorRegistrationForm(request.POST)
+        form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            try:
-                user = form.save()
-                messages.success(request, 'Account created successfully! You can now log in.')
-                return redirect('login')
-            except Exception as e:
-                # Handle database errors gracefully
-                messages.error(request, f'Registration failed. Please try again or contact support.')
-                print(f"Error during survivor registration: {str(e)}")
+            user = form.save(commit=False)
+            user.user_type = 'survivor'
+            user.save()
+            messages.success(request, "Account created successfully. You can now log in.")
+            return redirect('login')
     else:
-        form = SurvivorRegistrationForm()
+        form = UserRegistrationForm()
     return render(request, 'register_user.html', {'form': form})
 
+
 def register_counselor_view(request):
-    """View for counselor registration"""
+    """Registration view for counselors"""
     if request.method == 'POST':
         form = CounselorRegistrationForm(request.POST)
         if form.is_valid():
-            try:
-                user = form.save()
-                messages.success(request, 'Your registration has been submitted. Our admin will review your credentials.')
-                return redirect('login')
-            except Exception as e:
-                # Handle database errors gracefully
-                messages.error(request, f'Registration failed. Please try again or contact support.')
-                print(f"Error during counselor registration: {str(e)}")
+            user = form.save(commit=False)
+            user.user_type = 'counselor'
+            user.save()
+
+            # Create counselor profile
+            counselor_profile = CounselorProfile(
+                user=user,
+                license_number=form.cleaned_data['license_number'],
+                specialization=form.cleaned_data['specialization'],
+                years_of_experience=form.cleaned_data['years_of_experience'],
+                is_verified=False  # Pending admin verification
+            )
+            counselor_profile.save()
+
+            messages.success(request, "Your registration is pending verification by an admin.")
+            return redirect('login')
     else:
         form = CounselorRegistrationForm()
     return render(request, 'register_counselor.html', {'form': form})
+
+
 @login_required
 def user_dashboard(request):
-    """View for survivor dashboard"""
-    # This is a placeholder. You'll expand this later.
-    return render(request, 'user_dashboard.html')
+    """Dashboard for survivors/users"""
+    if request.user.user_type != 'survivor':
+        raise PermissionDenied("You don't have permission to access this dashboard.")
+
+    assignments = Assignment.objects.filter(
+        survivor=request.user,
+        status__in=['active', 'suspended']
+    ).select_related('counselor')
+
+    return render(request, 'user_dashboard.html', {'assignments': assignments})
+
 
 @login_required
 def counselor_dashboard(request):
-    """View for counselor dashboard"""
-    # This is a placeholder. You'll expand this later.
-    return render(request, 'counselor_dashboard.html')
+    """Dashboard for counselors"""
+    if request.user.user_type != 'counselor':
+        raise PermissionDenied("You don't have permission to access this dashboard.")
+
+    if not hasattr(request.user, 'counselorprofile') or not request.user.counselorprofile.is_verified:
+        return render(request, 'counselor_pending.html')
+
+    assignments_count = Assignment.objects.filter(
+        counselor=request.user,
+        status='active'
+    ).count()
+
+    return render(request, 'counselor_dashboard.html', {'assignments_count': assignments_count})
+
+
+@login_required
+@user_passes_test(is_admin)
+def verify_counselors(request):
+    """Admin view to list all counselors pending verification"""
+    context = {
+        'pending_counselors': CounselorProfile.objects.filter(is_verified=False).select_related('user'),
+        'verified_counselors': CounselorProfile.objects.filter(is_verified=True).select_related('user'),
+    }
+    return render(request, 'verify_counselors.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def counselor_verification_detail(request, counselor_id):
+    """Admin view to verify a specific counselor"""
+    counselor_profile = get_object_or_404(
+        CounselorProfile.objects.select_related('user'),
+        id=counselor_id
+    )
+
+    if request.method == 'POST':
+        form = CounselorVerificationForm(request.POST, instance=counselor_profile)
+        if form.is_valid():
+            profile = form.save()
+            verification_status = "verified" if profile.is_verified else "rejected"
+            messages.success(
+                request,
+                f"Counselor {profile.user.username} has been {verification_status}"
+            )
+            return redirect('verify_counselors')
+    else:
+        form = CounselorVerificationForm(instance=counselor_profile)
+
+    return render(request, 'counselor_verification_detail.html', {
+        'form': form,
+        'counselor': counselor_profile.user,
+        'profile': counselor_profile
+    })
+
+
+@login_required
+@user_passes_test(is_counselor)
+def update_counselor_profile(request):
+    """View for counselors to update their profile information"""
+    profile = get_object_or_404(CounselorProfile, user=request.user)
+
+    if request.method == 'POST':
+        form = CounselorProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.cleaned_data.pop('confirm_license', None)
+            form.save()
+            messages.success(request, "Your profile has been updated successfully.")
+            return redirect('counselor_dashboard')
+    else:
+        form = CounselorProfileForm(instance=profile)
+
+    return render(request, 'update_counselor_profile.html', {'form': form})
+
+
+@login_required
+@user_passes_test(is_counselor)
+def assignment_list(request):
+    """View for counselors to see their assigned survivors"""
+    assignments = Assignment.objects.filter(
+        counselor=request.user,
+        status__in=['active', 'suspended']
+    ).select_related('survivor')
+
+    return render(request, 'assignment_list.html', {'assignments': assignments})
+
+
+@login_required
+def assignment_detail(request, assignment_id):
+    """View details of a specific counselor-survivor assignment"""
+    if request.user.user_type == 'survivor':
+        query_params = {'survivor': request.user}
+    elif request.user.user_type == 'counselor':
+        query_params = {'counselor': request.user}
+    else:
+        raise PermissionDenied("You don't have permission to view this assignment.")
+
+    assignment = get_object_or_404(
+        Assignment.objects.select_related('counselor', 'survivor'),
+        id=assignment_id,
+        **query_params
+    )
+
+    return render(request, 'assignment_detail.html', {'assignment': assignment})
+
+
+@login_required
+@user_passes_test(is_counselor)
+@require_http_methods(["POST"])
+def update_assignment_notes(request, assignment_id):
+    """AJAX view to update assignment notes"""
+    if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse(
+            {'status': 'error', 'message': 'Invalid request method'},
+            status=400
+        )
+
+    assignment = get_object_or_404(
+        Assignment,
+        counselor=request.user,
+        id=assignment_id
+    )
+
+    notes = request.POST.get('notes', '').strip()
+    assignment.notes = notes
+    assignment.save(update_fields=['notes'])
+
+    return JsonResponse({'status': 'success', 'message': 'Notes updated successfully'})
