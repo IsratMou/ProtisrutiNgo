@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
+
+{% block title %}Verify Counselor - PROTISRUTI{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'verify_counselors' %}">Counselor Verification</a></li>
+            <li class="breadcrumb-item active">{{ counselor.username }}</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="content-box bg-white p-4 rounded shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">
+                        <i class="fas fa-user-check me-2 text-primary"></i>Counselor Verification
+                    </h2>
+                    <a href="{% url 'verify_counselors' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+
+                <!-- Counselor Profile Card -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-lg bg-primary-soft rounded-circle me-3 d-flex align-items-center justify-content-center">
+                                <h1 class="mb-0 text-primary">{{ counselor.username|make_list|first|upper }}</h1>
+                            </div>
+                            <div>
+                                <h3 class="mb-1">{{ counselor.username }}</h3>
+                                <p class="mb-0 text-muted">
+                                    <i class="fas fa-envelope me-2"></i>{{ counselor.email }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded bg-light">
+                                    <h5 class="text-primary mb-3">Professional Information</h5>
+                                    <div class="d-flex mb-2">
+                                        <div class="w-50"><strong>License Number:</strong></div>
+                                        <div><code class="bg-light">{{ counselor_profile.license_number }}</code></div>
+                                    </div>
+                                    <div class="d-flex mb-2">
+                                        <div class="w-50"><strong>Specialization:</strong></div>
+                                        <div><span class="badge bg-info">{{ counselor_profile.specialization }}</span></div>
+                                    </div>
+                                    <div class="d-flex mb-2">
+                                        <div class="w-50"><strong>Joined:</strong></div>
+                                        <div>{{ counselor.date_joined|date:"F d, Y" }}</div>
+                                    </div>
+                                    <div class="d-flex">
+                                        <div class="w-50"><strong>Status:</strong></div>
+                                        <div>
+                                            {% if counselor_profile.is_verified %}
+                                                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Verified</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Pending</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded bg-light h-100">
+                                    <h5 class="text-primary mb-3">Professional Bio</h5>
+                                    <div class="bio-content">
+                                        {{ counselor_profile.bio|linebreaks }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verification Form -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Verification Decision</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" id="verificationForm">
+                            {% csrf_token %}
+                            {{ form|crispy }}
+                            <div class="mt-4 d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-outline-secondary"
+                                        onclick="window.location.href='{% url 'verify_counselors' %}'">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save Decision
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Form submission confirmation
+    document.getElementById('verificationForm').addEventListener('submit', function(e) {
+        if (!confirm('Are you sure you want to submit this verification decision?')) {
+            e.preventDefault();
+        }
+    });
+
+    // Auto-resize bio content
+    const bioContent = document.querySelector('.bio-content');
+    if (bioContent.scrollHeight > 200) {
+        bioContent.style.maxHeight = '200px';
+        bioContent.style.overflowY = 'auto';
+    }
+</script>
+{% endblock %}
+{% endblock %}
