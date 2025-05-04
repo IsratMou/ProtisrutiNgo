@@ -3,6 +3,7 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
+    # Existing URLs
     path('', views.home_view, name='home'),
     path('login-options/', views.LoginOptionsView.as_view(), name='login_options'),
     path('login/', views.login_view, name='login'),
@@ -12,4 +13,18 @@ urlpatterns = [
     path('register/counselor/', views.register_counselor_view, name='register_counselor'),
     path('dashboard/user/', views.user_dashboard, name='user_dashboard'),
     path('dashboard/counselor/', views.counselor_dashboard, name='counselor_dashboard'),
+
+    # Counselor verification URLs (for admin)
+    path('admin/verify-counselors/', views.verify_counselors, name='verify_counselors'),
+    path('admin/verify-counselor/<int:counselor_id>/', views.counselor_verification_detail,
+         name='counselor_verification_detail'),
+
+    # Counselor profile URLs
+    path('counselor/profile/update/', views.update_counselor_profile, name='update_counselor_profile'),
+
+    # Assignment URLs
+    path('counselor/assignments/', views.assignment_list, name='assignment_list'),
+    path('assignments/<int:assignment_id>/', views.assignment_detail, name='assignment_detail'),
+    path('assignments/<int:assignment_id>/update-notes/', views.update_assignment_notes,
+         name='update_assignment_notes'),
 ]
