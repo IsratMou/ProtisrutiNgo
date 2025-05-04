@@ -2,11 +2,13 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
 
+
 class CustomUserManager(BaseUserManager):
     """
     Custom user model manager where email is the unique identifier
     for authentication instead of username.
     """
+
     def create_user(self, email, password=None, **extra_fields):
         """
         Create and save a user with the given email and password.
@@ -27,12 +29,13 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
         extra_fields.setdefault('user_type', 'admin')
-        
+
         if extra_fields.get('is_staff') is not True:
             raise ValueError(_('Superuser must have is_staff=True.'))
         if extra_fields.get('is_superuser') is not True:
             raise ValueError(_('Superuser must have is_superuser=True.'))
         return self.create_user(email, password, **extra_fields)
+
 
 class CustomUser(AbstractUser):
     """
@@ -44,24 +47,25 @@ class CustomUser(AbstractUser):
         ('counselor', 'Counselor'),
         ('admin', 'Admin'),
     )
-    
+
     email = models.EmailField(_('email address'), unique=True)
     username = models.CharField(max_length=150, unique=True)
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='survivor')
-    
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
-    
+
     objects = CustomUserManager()
-    
+
     def __str__(self):
         return self.username
-    
+
     def is_survivor(self):
         return self.user_type == 'survivor'
-    
+
     def is_counselor(self):
         return self.user_type == 'counselor'
+
 
 class SurvivorProfile(models.Model):
     """
@@ -69,9 +73,10 @@ class SurvivorProfile(models.Model):
     """
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='survivor_profile')
     bio = models.TextField(blank=True, null=True)
-    
+
     def __str__(self):
         return f"{self.user.username}'s Profile"
+
 
 class CounselorProfile(models.Model):
     """
@@ -82,6 +87,23 @@ class CounselorProfile(models.Model):
     specialization = models.CharField(max_length=200)
     bio = models.TextField()
     is_verified = models.BooleanField(default=False)
-    
+
     def __str__(self):
         return f"{self.user.username}'s Profile"
+
+
+class Assignment(models.Model):
+    """
+    Model for tracking counselor assignments to survivors
+    """
+    counselor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='counselor_assignments')
+    survivor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='survivor_assignments')
+    assigned_date = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Assignment: {self.counselor.username} - {self.survivor.username}"
+
+    class Meta:
+        unique_together = ('counselor', 'survivor')  # Prevent duplicate assignments
