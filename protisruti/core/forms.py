@@ -14,32 +14,49 @@ class SurvivorRegistrationForm(UserCreationForm):
     email = forms.CharField(
         max_length=254,
         widget=forms.TextInput(
-            attrs={'class': 'form-control', 'placeholder': 'Email'})
+            attrs={'class': 'form-control', 'placeholder': 'Email (Text Type)'}
+        )
     )
     username = forms.CharField(
         max_length=30,
         widget=forms.TextInput(
-            attrs={'class': 'form-control', 'placeholder': 'Username'})
+            attrs={'class': 'form-control', 'placeholder': 'Username'}
+        )
     )
     password1 = forms.CharField(
         label="Password",
         widget=forms.PasswordInput(
-            attrs={'class': 'form-control', 'placeholder': 'Password'})
+            attrs={'class': 'form-control', 'placeholder': 'Password'}
+        )
     )
     password2 = forms.CharField(
         label="Confirm Password",
         widget=forms.PasswordInput(
-            attrs={'class': 'form-control', 'placeholder': 'Confirm Password'})
+            attrs={'class': 'form-control', 'placeholder': 'Confirm Password'}
+        )
     )
     bio = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={
-            'class': 'form-control', 'placeholder': 'Tell us about yourself (optional)', 'rows': 3})
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Tell us about yourself (optional)',
+                'rows': 3,
+            }
+        )
     )
 
     class Meta:
         model = CustomUser
         fields = ('email', 'username', 'password1', 'password2')
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if CustomUser.objects.filter(username=username).exists():
+            raise ValidationError(
+                "This username is already taken. Please choose a different one."
+            )
+        return username
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -49,14 +66,14 @@ class SurvivorRegistrationForm(UserCreationForm):
             user.save()
             SurvivorProfile.objects.get_or_create(
                 user=user,
-                defaults={'bio': self.cleaned_data.get('bio', '')}
+                defaults={'bio': self.cleaned_data.get('bio', '')},
             )
         return user
 
 
 class CounselorRegistrationForm(forms.ModelForm):
     """
-    Form for counselor registration with additional fields
+    Form for counselor registration with minimal restrictions
     """
     EXPERTISE_CHOICES = [
         ('trauma_ptsd', 'Trauma & PTSD Counseling'),
@@ -74,12 +91,13 @@ class CounselorRegistrationForm(forms.ModelForm):
     email = forms.CharField(
         max_length=254,
         widget=forms.TextInput(
-            attrs={'class': 'form-control', 'placeholder': 'Email'})
+            attrs={'class': 'form-control', 'placeholder': 'Email (Text Type)'}
+        )
     )
     expertise_sector = forms.ChoiceField(
         choices=EXPERTISE_CHOICES,
         widget=forms.Select(attrs={'class': 'form-control'}),
-        label="Expertise Sector"
+        label="Expertise Sector",
     )
 
     class Meta:
@@ -87,23 +105,38 @@ class CounselorRegistrationForm(forms.ModelForm):
         fields = ['name', 'email', 'years_of_experience', 'expertise_sector']
 
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Full Name'}),
-            'years_of_experience': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Years of Experience'}),
+            'name': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': 'Full Name'}
+            ),
+            'years_of_experience': forms.NumberInput(
+                attrs={'class': 'form-control',
+                       'placeholder': 'Years of Experience'}
+            ),
         }
+
+    def save(self, commit=True):
+        # Save the counselor without additional validation
+        counselor = super().save(commit=False)
+        counselor.is_active = True
+        if commit:
+            counselor.save()
+        return counselor
 
 
 class CustomLoginForm(AuthenticationForm):
     """
-    Custom login form with styled fields
+    Custom login form with minimal restrictions
     """
-    username = forms.EmailField(
+    username = forms.CharField(
         max_length=254,
-        widget=forms.EmailInput(
-            attrs={'class': 'form-control', 'placeholder': 'Email'})
+        widget=forms.TextInput(
+            attrs={'class': 'form-control', 'placeholder': 'Username or Email'}
+        )
     )
     password = forms.CharField(
         widget=forms.PasswordInput(
-            attrs={'class': 'form-control', 'placeholder': 'Password'})
+            attrs={'class': 'form-control', 'placeholder': 'Password'}
+        )
     )
 
 

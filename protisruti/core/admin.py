@@ -1,20 +1,9 @@
-from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, SurvivorProfile, CounselorProfile, Counselor
+from django.contrib import admin # type: ignore
+from django.contrib.auth.admin import UserAdmin # type: ignore
+from .models import CustomUser, SurvivorProfile, Counselor
 
 
-class SurvivorProfileInline(admin.StackedInline):
-    model = SurvivorProfile
-    can_delete = False
-    verbose_name_plural = 'Survivor Profile'
-
-
-class CounselorProfileInline(admin.StackedInline):
-    model = CounselorProfile
-    can_delete = False
-    verbose_name_plural = 'Counselor Profile'
-
-
+@admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
     list_display = ('email', 'username', 'user_type',
@@ -31,27 +20,21 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'username', 'password1', 'password2', 'user_type'),
-        }),
+            'fields': ('email', 'username', 'password1', 'password2', 'user_type', 'is_staff', 'is_active')}
+         ),
     )
     search_fields = ('email', 'username')
     ordering = ('email',)
 
-    def get_inlines(self, request, obj=None):
-        if obj:
-            if obj.user_type == 'survivor':
-                return [SurvivorProfileInline]
-            elif obj.user_type == 'counselor':
-                return [CounselorProfileInline]
-        return []
 
-
-admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(SurvivorProfile)
-admin.site.register(CounselorProfile)
+@admin.register(SurvivorProfile)
+class SurvivorProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'bio')
+    search_fields = ('user__username', 'user__email')
 
 
 @admin.register(Counselor)
 class CounselorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'years_of_experience',
-                    'expertise_sector')  # Display new fields
+    list_display = ('name', 'email', 'years_of_experience', 'expertise_sector')
+    search_fields = ('name', 'email', 'expertise_sector')
+    list_filter = ('expertise_sector', 'years_of_experience')
