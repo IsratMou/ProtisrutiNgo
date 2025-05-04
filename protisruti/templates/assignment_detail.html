@@ -1,10 +1,200 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}Assignment Details - PROTISRUTI{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        {% if user.is_counselor %}
+                            <a href="{% url 'assignment_list' %}">Assignments</a>
+                        {% else %}
+                            <a href="{% url 'user_dashboard' %}">Dashboard</a>
+                        {% endif %}
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Assignment Details</li>
+                </ol>
+            </nav>
+
+            <div class="content-box">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">Assignment Details</h2>
+                    <div class="assignment-status">
+                        {% if assignment.is_active %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-check-circle me-1"></i>Active
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-times-circle me-1"></i>Inactive
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Profile Information Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h3 class="h5 mb-0">
+                            <i class="fas fa-user me-2"></i>
+                            {% if user.is_counselor %}
+                                Survivor Information
+                            {% else %}
+                                Counselor Information
+                            {% endif %}
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        {% if user.is_counselor %}
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="avatar-sm bg-primary-soft rounded-circle me-3">
+                                    {{ assignment.survivor.username|make_list|first|upper }}
+                                </div>
+                                <h4 class="mb-0">{{ assignment.survivor.username }}</h4>
+                            </div>
+                            {% if assignment.survivor.survivor_profile.bio %}
+                                <h5 class="text-muted mb-2">Bio</h5>
+                                <div class="p-3 border rounded bg-light bio-content">
+                                    {{ assignment.survivor.survivor_profile.bio|linebreaks }}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="avatar-sm bg-primary-soft rounded-circle me-3">
+                                    {{ assignment.counselor.username|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <h4 class="mb-0">{{ assignment.counselor.username }}</h4>
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-certificate me-1"></i>
+                                        {{ assignment.counselor.counselor_profile.specialization }}
+                                    </p>
+                                </div>
+                            </div>
+                            <h5 class="text-muted mb-2">About Your Counselor</h5>
+                            <div class="p-3 border rounded bg-light bio-content">
+                                {{ assignment.counselor.counselor_profile.bio|linebreaks }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Assignment Details Card -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h3 class="h5 mb-0">
+                            <i class="fas fa-clipboard-list me-2"></i>Assignment Details
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <i class="fas fa-calendar me-2 text-muted"></i>
+                                    <strong>Assigned Date:</strong>
+                                </p>
+                                <p>{{ assignment.assigned_date|date:"F d, Y" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <i class="fas fa-clock me-2 text-muted"></i>
+                                    <strong>Last Updated:</strong>
+                                </p>
+                                <p>{{ assignment.updated_at|default:"Not available"|date:"F d, Y" }}</p>
+                            </div>
+                        </div>
+
+                        {% if assignment.notes and user.is_counselor %}
+                            <div class="notes-section mb-4">
+                                <h5 class="text-muted mb-2">
+                                    <i class="fas fa-sticky-note me-2"></i>Notes
+                                </h5>
+                                <div class="p-3 border rounded bg-light">
+                                    {{ assignment.notes|linebreaks }}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <div class="d-flex gap-2 mt-4">
+                            <a href="#" class="btn btn-primary">
+                                <i class="fas fa-comments me-2"></i>Start Chat Session
+                            </a>
+                            {% if user.is_counselor %}
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#updateNotesModal">
+                                    <i class="fas fa-edit me-2"></i>Update Notes
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user.is_counselor %}
+<!-- Update Notes Modal -->
+<div class="modal fade" id="updateNotesModal" tabindex="-1" aria-labelledby="updateNotesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateNotesModalLabel">
+                    <i class="fas fa-edit me-2"></i>Update Assignment Notes
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'update_assignment_notes' assignment.id %}" id="notesForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes (Only visible to you)</label>
+                        <textarea
+                            class="form-control"
+                            id="notes"
+                            name="notes"
+                            rows="5"
+                            placeholder="Enter your private notes here..."
+                        >{{ assignment.notes }}</textarea>
+                        <div class="form-text">
+                            <i class="fas fa-lock me-1"></i>
+                            These notes are private and only visible to you to help track your counseling progress.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save Notes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Notes Form -->
+<script>
+    document.getElementById('notesForm').addEventListener('submit', function(e) {
+        const notes = document.getElementById('notes').value.trim();
+        if (!notes) {
+            e.preventDefault();
+            alert('Please enter some notes before saving.');
+        }
+    });
+
+    // Auto-resize bio content sections
+    document.querySelectorAll('.bio-content').forEach(content => {
+        if (content.scrollHeight > 200) {
+            content.style.maxHeight = '200px';
+            content.style.overflowY = 'auto';
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}
