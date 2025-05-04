@@ -117,43 +117,69 @@ class CustomLoginForm(AuthenticationForm):
 
 
 class CounselorVerificationForm(forms.ModelForm):
-    """
-    Form for admins to verify counselor accounts
-    """
+    """Form for admins to verify counselor accounts and add verification notes"""
+    verification_notes = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        required=False,
+        help_text="Optional notes about the verification decision"
+    )
 
     class Meta:
         model = CounselorProfile
-        fields = ['is_verified']
+        fields = ['is_verified', 'verification_notes']
         widgets = {
-            'is_verified': forms.CheckboxInput(attrs={'class': 'form-check-input'})
+            'is_verified': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'data-toggle': 'toggle'
+            })
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['is_verified'].label = "Verify this counselor"
-        self.fields['is_verified'].help_text = "Check this box to verify the counselor's credentials"
+        self.fields['is_verified'].label = "Verify Counselor"
+        self.fields['is_verified'].help_text = "Check to verify the counselor's credentials"
 
 
 class CounselorProfileForm(forms.ModelForm):
-    """
-    Form for counselors to update their profile information
-    """
+    """Form for counselors to update their profile information"""
+    confirm_license = forms.BooleanField(
+        required=True,
+        label="License Confirmation",
+        help_text="I confirm that my license is current and valid"
+    )
 
     class Meta:
         model = CounselorProfile
         fields = ['license_number', 'specialization', 'bio']
         widgets = {
-            'license_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'specialization': forms.TextInput(attrs={'class': 'form-control'}),
-            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4})
+            'license_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'pattern': r'^\S+$',
+                'title': 'License number should not contain spaces'
+            }),
+            'specialization': forms.TextInput(attrs={
+                'class': 'form-control',
+                'minlength': '3'
+            }),
+            'bio': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'minlength': '100'
+            })
         }
         labels = {
-            'license_number': 'License Number',
-            'specialization': 'Specialization',
-            'bio': 'Bio'
+            'license_number': 'Professional License Number',
+            'specialization': 'Area of Specialization',
+            'bio': 'Professional Biography'
         }
         help_texts = {
-            'license_number': 'Enter your professional license number.',
-            'specialization': 'Enter your area of specialization.',
-            'bio': 'Tell us about your professional background and experience.'
+            'license_number': 'Enter your valid professional license number',
+            'specialization': 'Specify your primary area of expertise (e.g., Trauma, PTSD)',
+            'bio': 'Describe your qualifications, experience, and approach to counseling'
         }
+
+    def clean_license_number(self):
+        license_number = self.cleaned_data['license_number']
+        if ' ' in license_number:
+            raise forms.ValidationError("License number should not contain spaces")
+        return license_number.upper()
