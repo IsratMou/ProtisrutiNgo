@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
+
+{% block title %}Update Your Profile - PROTISRUTI{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'counselor_dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Update Profile</li>
+                </ol>
+            </nav>
+
+            <div class="content-box">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="h2 mb-2">Update Your Professional Profile</h1>
+                        <p class="text-muted mb-0">Keep your professional information up to date to better serve survivors.</p>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h2 class="h5 mb-0">
+                            <i class="fas fa-user-edit me-2"></i>Profile Information
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" id="profileForm" novalidate>
+                            {% csrf_token %}
+
+                            <div class="mb-4">
+                                {{ form.license_number|as_crispy_field }}
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Enter your professional license number for verification purposes.
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                {{ form.specialization|as_crispy_field }}
+                                <div class="form-text">
+                                    <i class="fas fa-certificate me-1"></i>
+                                    Select your primary area of expertise.
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                {{ form.bio|as_crispy_field }}
+                                <div class="form-text">
+                                    <i class="fas fa-user-shield me-1"></i>
+                                    Share your expertise, approach, and experience to help survivors feel comfortable.
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{% url 'counselor_dashboard' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {% if not user.counselor_profile.is_verified %}
+                <div class="alert alert-warning mt-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+                        <div>
+                            <h3 class="h6 mb-1">Verification Pending</h3>
+                            <p class="mb-0">Your profile is pending verification by our administrators. Any updates you make will be reviewed during the verification process.</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('profileForm');
+    const bioField = form.querySelector('#id_bio');
+
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        const requiredFields = form.querySelectorAll('input[required], textarea[required], select[required]');
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+
+    // Auto-resize textarea
+    if (bioField) {
+        bioField.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight + 2) + 'px';
+        });
+    }
+});
+</script>
+{% endblock %}
