@@ -4,15 +4,17 @@
 
 {% block content %}
 <div class="container my-5">
+</div>
+{% endblock %}
     <div class="row">
         <div class="col-md-12">
             <div class="content-box">
                 <h1>Welcome, {{ user.username }}</h1>
                 {% if user.counselor_profile.is_verified %}
-                    <p>Your account is verified. You can now provide counseling services.</p>
+                    <p class="text-success"><i class="fas fa-check-circle"></i> Your account is verified. You can now provide counseling services.</p>
                 {% else %}
                     <div class="alert alert-warning">
-                        <p>Your account is pending verification. Our administrators will review your credentials soon.</p>
+                        <p><i class="fas fa-exclamation-triangle"></i> Your account is pending verification. Our administrators will review your credentials soon.</p>
                     </div>
                 {% endif %}
             </div>
@@ -20,18 +22,98 @@
     </div>
     
     <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="content-box">
-                <h2>Your Dashboard</h2>
-                <p>This dashboard is currently under development. Soon you will be able to:</p>
-                <ul>
-                    <li>Manage your counseling sessions</li>
-                    <li>View assigned survivors</li>
-                    <li>Access professional resources</li>
-                    <li>Participate in counselor networks</li>
-                </ul>
+        <div class="col-md-4 mb-4">
+            <div class="content-box h-100">
+                <h3>Profile Overview</h3>
+                <div class="mt-3">
+                    <p><strong>License #:</strong> {{ profile.license_number }}</p>
+                    <p><strong>Specialization:</strong> {{ profile.specialization }}</p>
+                    <p><strong>Account Status:</strong> 
+                        {% if profile.is_verified %}
+                            <span class="badge bg-success">Verified</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Pending Verification</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'update_counselor_profile' %}" class="btn btn-outline-primary">Update Profile</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8 mb-4">
+            <div class="content-box h-100">
+                <h3>Assignments Statistics</h3>
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card text-center mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Active Assignments</h5>
+                                <h2 class="display-4">{{ active_assignments }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card text-center mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Completed</h5>
+                                <h2 class="display-4">{{ completed_assignments }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <a href="{% url 'assignment_list' %}" class="btn btn-primary">View All Assignments</a>
+                </div>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+    
+    <div class="row mt-2">
+        <div class="col-md-12">
+            <div class="content-box">
+                <h3>Recent Assignments</h3>
+                {% if assignments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Survivor</th>
+                                    <th>Assigned Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in assignments|slice:":5" %}
+                                <tr>
+                                    <td>{{ assignment.survivor.username }}</td>
+                                    <td>{{ assignment.assigned_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if assignment.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'assignment_detail' assignment.id %}" class="btn btn-sm btn-primary">View Details</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if assignments.count > 5 %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'assignment_list' %}" class="btn btn-outline-primary">View All Assignments</a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        You don't have any assignments yet. Once you're verified, survivors will be assigned to you based on your specialization.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
