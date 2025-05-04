@@ -147,3 +147,13 @@ class CounselorProfileForm(forms.ModelForm):
             'specialization': forms.TextInput(attrs={'class': 'form-control'}),
             'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4})
         }
+        labels = {
+            'license_number': 'License Number',
+            'specialization': 'Specialization',
+            'bio': 'Bio'
+        }
+        help_texts = {
+            'license_number': 'Enter your professional license number.',
+            'specialization': 'Enter your area of specialization.',
+            'bio': 'Tell us about your professional background and experience.'
+        }
