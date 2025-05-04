@@ -94,16 +94,68 @@ class CounselorProfile(models.Model):
 
 class Assignment(models.Model):
     """
-    Model for tracking counselor assignments to survivors
+    Model for tracking counselor assignments to survivors with enhanced tracking
+    and validation capabilities.
     """
-    counselor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='counselor_assignments')
-    survivor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='survivor_assignments')
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('suspended', 'Suspended'),
+        ('terminated', 'Terminated')
+    ]
+
+    counselor = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='counselor_assignments',
+        limit_choices_to={'user_type': 'counselor'}
+    )
+    survivor = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='survivor_assignments',
+        limit_choices_to={'user_type': 'survivor'}
+    )
     assigned_date = models.DateTimeField(auto_now_add=True)
-    notes = models.TextField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
+    last_updated = models.DateTimeField(auto_now=True)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='active'
+    )
+    notes = models.TextField(blank=True, null=True, help_text="Additional notes about the assignment")
+    next_session_date = models.DateTimeField(null=True, blank=True)
+    total_sessions = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        return f"Assignment: {self.counselor.username} - {self.survivor.username}"
+        return f"Assignment: {self.counselor.username} - {self.survivor.username} ({self.status})"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.counselor.user_type != 'counselor':
+            raise ValidationError('Selected user must be a counselor.')
+        if self.survivor.user_type != 'survivor':
+            raise ValidationError('Selected user must be a survivor.')
+        if self.counselor == self.survivor:
+            raise ValidationError('Counselor and survivor cannot be the same user.')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     class Meta:
-        unique_together = ('counselor', 'survivor')  # Prevent duplicate assignments
+        unique_together = ('counselor', 'survivor', 'status')
+        ordering = ['-assigned_date', 'status']
+        verbose_name = 'Counselor Assignment'
+        verbose_name_plural = 'Counselor Assignments'
+        permissions = [
+            ('can_view_assignments', 'Can view assignments'),
+            ('can_edit_assignments', 'Can edit assignments'),
+            ('can_delete_assignments', 'Can delete assignments'),
+            ('can_change_status', 'Can change assignment status'),
+        ]
+        indexes = [
+            models.Index(fields=['status', 'assigned_date']),
+            models.Index(fields=['counselor', 'status']),
+            models.Index(fields=['survivor', 'status']),
+        ]
