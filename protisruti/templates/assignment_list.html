@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Assignments - PROTISRUTI{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Assignments</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="content-box bg-white p-4 rounded shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="fas fa-users me-2 text-primary"></i>Your Assigned Survivors
+                        </h2>
+                        <p class="text-muted mt-2 mb-0">Manage and track your counseling assignments</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <div class="search-box">
+                            <label for="assignmentSearch"></label><input type="text" id="assignmentSearch" class="form-control" placeholder="Search assignments...">
+                        </div>
+                        <label for="statusFilter"></label><select id="statusFilter" class="form-select">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                {% if assignments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Survivor</th>
+                                    <th>Assigned Date</th>
+                                    <th>Status</th>
+                                    <th>Last Session</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in assignments %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary-soft rounded-circle me-2">
+                                                {{ assignment.survivor.username|make_list|first|upper }}
+                                            </div>
+                                            {{ assignment.survivor.username }}
+                                        </div>
+                                    </td>
+                                    <td>{{ assignment.assigned_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if assignment.is_active %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Active
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-times-circle me-1"></i>Inactive
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if assignment.last_session %}
+                                            {{ assignment.last_session|date:"M d, Y" }}
+                                        {% else %}
+                                            <span class="text-muted">No sessions yet</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'assignment_detail' assignment.id %}"
+                                               class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye me-1"></i>View Details
+                                            </a>
+                                            <a href="{% url 'create_session' assignment.id %}"
+                                               class="btn btn-sm btn-success">
+                                                <i class="fas fa-plus me-1"></i>New Session
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info d-flex align-items-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <div>
+                            <h5 class="alert-heading">No Active Assignments</h5>
+                            <p class="mb-0">You don't have any active assignments yet. Our system will assign survivors to you based on their needs and your specialization.</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Search and filter functionality
+    const searchInput = document.getElementById('assignmentSearch');
+    const statusFilter = document.getElementById('statusFilter');
+    const rows = document.querySelectorAll('tbody tr');
+
+    function filterTable() {
+        const searchQuery = searchInput.value.toLowerCase();
+        const statusQuery = statusFilter.value;
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const status = row.querySelector('.badge').textContent.toLowerCase();
+            const matchesSearch = text.includes(searchQuery);
+            const matchesStatus = statusQuery === 'all' || status.includes(statusQuery);
+
+            row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('keyup', filterTable);
+    statusFilter.addEventListener('change', filterTable);
+</script>
+{% endblock %}
+{% endblock %}
