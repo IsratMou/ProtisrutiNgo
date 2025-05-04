@@ -3,6 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 from .models import CustomUser, SurvivorProfile, CounselorProfile
 
+
 class SurvivorRegistrationForm(UserCreationForm):
     """
     Form for survivor registration with custom fields
@@ -25,17 +26,18 @@ class SurvivorRegistrationForm(UserCreationForm):
     )
     bio = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Tell us about yourself (optional)', 'rows': 3})
+        widget=forms.Textarea(
+            attrs={'class': 'form-control', 'placeholder': 'Tell us about yourself (optional)', 'rows': 3})
     )
-    
+
     class Meta:
         model = CustomUser
         fields = ('email', 'username', 'password1', 'password2')
-        
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.user_type = 'survivor'
-        
+
         if commit:
             user.save()
             # First check if a profile already exists before creating one
@@ -44,6 +46,7 @@ class SurvivorRegistrationForm(UserCreationForm):
                 defaults={'bio': self.cleaned_data.get('bio', '')}
             )
         return user
+
 
 class CounselorRegistrationForm(UserCreationForm):
     """
@@ -74,17 +77,18 @@ class CounselorRegistrationForm(UserCreationForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Specialization'})
     )
     bio = forms.CharField(
-        widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Tell us about your experience', 'rows': 3})
+        widget=forms.Textarea(
+            attrs={'class': 'form-control', 'placeholder': 'Tell us about your experience', 'rows': 3})
     )
-    
+
     class Meta:
         model = CustomUser
         fields = ('email', 'username', 'password1', 'password2')
-        
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.user_type = 'counselor'
-        
+
         if commit:
             user.save()
             # First check if a profile already exists before creating one
@@ -98,6 +102,7 @@ class CounselorRegistrationForm(UserCreationForm):
             )
         return user
 
+
 class CustomLoginForm(AuthenticationForm):
     """
     Custom login form with styled fields
@@ -109,3 +114,36 @@ class CustomLoginForm(AuthenticationForm):
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'})
     )
+
+
+class CounselorVerificationForm(forms.ModelForm):
+    """
+    Form for admins to verify counselor accounts
+    """
+
+    class Meta:
+        model = CounselorProfile
+        fields = ['is_verified']
+        widgets = {
+            'is_verified': forms.CheckboxInput(attrs={'class': 'form-check-input'})
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['is_verified'].label = "Verify this counselor"
+        self.fields['is_verified'].help_text = "Check this box to verify the counselor's credentials"
+
+
+class CounselorProfileForm(forms.ModelForm):
+    """
+    Form for counselors to update their profile information
+    """
+
+    class Meta:
+        model = CounselorProfile
+        fields = ['license_number', 'specialization', 'bio']
+        widgets = {
+            'license_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'specialization': forms.TextInput(attrs={'class': 'form-control'}),
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4})
+        }
