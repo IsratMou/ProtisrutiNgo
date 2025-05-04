@@ -99,6 +99,7 @@ class Assignment(models.Model):
     Model for tracking counselor assignments to survivors with enhanced tracking
     and validation capabilities.
     """
+    objects = None
     STATUS_CHOICES = [
         ('active', 'Active'),
         ('completed', 'Completed'),
@@ -161,3 +162,30 @@ class Assignment(models.Model):
             models.Index(fields=['counselor', 'status']),
             models.Index(fields=['survivor', 'status']),
         ]
+
+        class Counselor(models.Model):
+            VERIFICATION_STATUS_CHOICES = [
+                ('pending', 'Pending'),
+                ('verified', 'Verified'),
+                ('rejected', 'Rejected'),
+            ]
+
+            user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='counselor_profile')
+            specialization = models.CharField(max_length=100)
+            experience_years = models.PositiveIntegerField(default=0)
+            bio = models.TextField()
+            verification_status = models.CharField(
+                max_length=20,
+                choices=VERIFICATION_STATUS_CHOICES,
+                default='pending'
+            )
+            license_number = models.CharField(max_length=50, blank=True, null=True)
+            certification_document = models.FileField(upload_to='counselor_certifications/', blank=True, null=True)
+            verification_date = models.DateTimeField(blank=True, null=True)
+            verification_notes = models.TextField(blank=True, null=True)
+
+            def __str__(self):
+                return f"{self.user.get_full_name()} - {self.get_verification_status_display()}"
+
+            def is_verified(self):
+                return self.verification_status == 'verified'

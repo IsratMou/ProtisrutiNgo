@@ -27,4 +27,7 @@ urlpatterns = [
     path('assignments/<int:assignment_id>/', views.assignment_detail, name='assignment_detail'),
     path('assignments/<int:assignment_id>/update-notes/', views.update_assignment_notes,
          name='update_assignment_notes'),
+    path('admin/verify-counselors/', views.verify_counselors, name='verify_counselors'),
+    path('admin/verify-counselors/<int:counselor_id>/', views.counselor_verification_detail,
+         name='counselor_verification_detail'),
 ]

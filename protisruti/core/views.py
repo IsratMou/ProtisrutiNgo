@@ -1,13 +1,12 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django import forms
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.http import JsonResponse
-from django.core.exceptions import PermissionDenied
-from django.views.decorators.http import require_http_methods
-from django.views import View
 from django.contrib.auth import authenticate, login
-from .models import CustomUser, CounselorProfile, Assignment
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.exceptions import PermissionDenied
+from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views import View
+from django.views.decorators.http import require_http_methods
+
 from .forms import (
     CounselorVerificationForm,
     CounselorProfileForm,
@@ -15,10 +14,11 @@ from .forms import (
     CounselorRegistrationForm,
     LoginForm,
 )
+from .models import CounselorProfile, Assignment
 
 
 def is_admin(user):
-    """Check if user has admin privileges"""
+    """Check if a user has admin privileges"""
     return user.is_superuser or user.user_type == 'admin'
 
 
@@ -35,7 +35,8 @@ def home_view(request):
 class LoginOptionsView(View):
     """View to display login options for different user types"""
 
-    def get(self, request):
+    @staticmethod
+    def get(request):
         return render(request, 'login_options.html')
 
 
@@ -255,5 +256,44 @@ def update_assignment_notes(request, assignment_id):
     notes = request.POST.get('notes', '').strip()
     assignment.notes = notes
     assignment.save(update_fields=['notes'])
+
+    @login_required
+    @user_passes_test(lambda u: u.is_staff)
+    def verify_counselors(request):
+        """View to list all counselors pending verification"""
+        pending_counselors = CounselorProfile.objects.filter(is_verified=False)
+        verified_counselors = CounselorProfile.objects.filter(is_verified=True)
+
+        context = {
+            'pending_counselors': pending_counselors,
+            'verified_counselors': verified_counselors,
+        }
+        return render(request, 'verify_counselors.html', context)
+
+    @login_required
+    @user_passes_test(lambda u: u.is_staff)
+    def counselor_verification_detail(request, counselor_id):
+        """View to verify or reject a specific counselor"""
+        counselor_profile = get_object_or_404(CounselorProfile, id=counselor_id)
+
+        if request.method == 'POST':
+            verification_status = request.POST.get('verification_status')
+
+            if verification_status in ['verified', 'rejected']:
+                counselor_profile.is_verified = (verification_status == 'verified')
+                counselor_profile.save()
+
+                if counselor_profile.is_verified:
+                    messages.success(request,
+                                     f"Counselor {counselor_profile.user.get_full_name()} has been verified successfully.")
+                else:
+                    messages.warning(request, f"Counselor {counselor_profile.user.get_full_name()} has been rejected.")
+
+                return redirect('verify_counselors')
+
+        context = {
+            'counselor': counselor_profile,
+        }
+        return render(request, 'counselor_verification_detail.html', context)
 
     return JsonResponse({'status': 'success', 'message': 'Notes updated successfully'})
