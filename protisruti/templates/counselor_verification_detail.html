@@ -1,128 +1,102 @@
 {% extends 'base.html' %}
-{% load crispy_forms_filters %}
-{% load crispy_forms_tags %}
 
-{% block title %}Verify Counselor - PROTISRUTI{% endblock %}
+{% block title %}Counselor Verification Detail - Protisruti{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-    <nav aria-label="breadcrumb" class="mb-4">
+<div class="container my-4">
+    <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
             <li class="breadcrumb-item"><a href="{% url 'verify_counselors' %}">Counselor Verification</a></li>
-            <li class="breadcrumb-item active">{{ counselor.username }}</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ counselor.user.get_full_name }}</li>
         </ol>
     </nav>
 
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="content-box bg-white p-4 rounded shadow-sm">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="mb-0">
-                        <i class="fas fa-user-check me-2 text-primary"></i>Counselor Verification
-                    </h2>
-                    <a href="{% url 'verify_counselors' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Back to List
-                    </a>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3>Counselor Profile</h3>
+            <span class="badge {% if counselor.verification_status == 'pending' %}bg-warning{% elif counselor.verification_status == 'verified' %}bg-success{% else %}bg-danger{% endif %}">
+                {{ counselor.get_verification_status_display }}
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Personal Information</h5>
+                    <p><strong>Name:</strong> {{ counselor.user.get_full_name }}</p>
+                    <p><strong>Email:</strong> {{ counselor.user.email }}</p>
+                    <p><strong>Account Created:</strong> {{ counselor.user.date_joined|date:"M d, Y" }}</p>
+                    
+                    {% if counselor.verification_date %}
+                    <p><strong>Verification Date:</strong> {{ counselor.verification_date|date:"M d, Y" }}</p>
+                    {% endif %}
                 </div>
-
-                <!-- Counselor Profile Card -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-light">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar-lg bg-primary-soft rounded-circle me-3 d-flex align-items-center justify-content-center">
-                                <h1 class="mb-0 text-primary">{{ counselor.username|make_list|first|upper }}</h1>
-                            </div>
-                            <div>
-                                <h3 class="mb-1">{{ counselor.username }}</h3>
-                                <p class="mb-0 text-muted">
-                                    <i class="fas fa-envelope me-2"></i>{{ counselor.email }}
-                                </p>
-                            </div>
+                <div class="col-md-8">
+                    <h5>Professional Information</h5>
+                    <p><strong>Specialization:</strong> {{ counselor.specialization }}</p>
+                    <p><strong>Experience:</strong> {{ counselor.experience_years }} years</p>
+                    <p><strong>License Number:</strong> {{ counselor.license_number|default:"Not provided" }}</p>
+                    
+                    <h5 class="mt-3">Professional Bio</h5>
+                    <div class="card">
+                        <div class="card-body bg-light">
+                            {{ counselor.bio|linebreaks }}
                         </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <div class="p-3 border rounded bg-light">
-                                    <h5 class="text-primary mb-3">Professional Information</h5>
-                                    <div class="d-flex mb-2">
-                                        <div class="w-50"><strong>License Number:</strong></div>
-                                        <div><code class="bg-light">{{ counselor_profile.license_number }}</code></div>
-                                    </div>
-                                    <div class="d-flex mb-2">
-                                        <div class="w-50"><strong>Specialization:</strong></div>
-                                        <div><span class="badge bg-info">{{ counselor_profile.specialization }}</span></div>
-                                    </div>
-                                    <div class="d-flex mb-2">
-                                        <div class="w-50"><strong>Joined:</strong></div>
-                                        <div>{{ counselor.date_joined|date:"F d, Y" }}</div>
-                                    </div>
-                                    <div class="d-flex">
-                                        <div class="w-50"><strong>Status:</strong></div>
-                                        <div>
-                                            {% if counselor_profile.is_verified %}
-                                                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Verified</span>
-                                            {% else %}
-                                                <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Pending</span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="p-3 border rounded bg-light h-100">
-                                    <h5 class="text-primary mb-3">Professional Bio</h5>
-                                    <div class="bio-content">
-                                        {{ counselor_profile.bio|linebreaks }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Verification Form -->
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-light">
-                        <h4 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Verification Decision</h4>
-                    </div>
-                    <div class="card-body">
-                        <form method="post" id="verificationForm">
-                            {% csrf_token %}
-                            {{ form|crispy }}
-                            <div class="mt-4 d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-outline-secondary"
-                                        onclick="window.location.href='{% url 'verify_counselors' %}'">
-                                    <i class="fas fa-times me-2"></i>Cancel
-                                </button>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save me-2"></i>Save Decision
-                                </button>
-                            </div>
-                        </form>
                     </div>
                 </div>
             </div>
+
+            {% if counselor.certification_document %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h5>Certification Documents</h5>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-file-earmark-text me-2"></i>
+                        <a href="{{ counselor.certification_document.url }}" target="_blank" class="btn btn-outline-primary">
+                            View Certification Document
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if counselor.verification_notes %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h5>Verification Notes</h5>
+                    <div class="card">
+                        <div class="card-body bg-light">
+                            {{ counselor.verification_notes|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
+
+    {% if counselor.verification_status == 'pending' %}
+    <div class="card">
+        <div class="card-header">
+            <h4>Make Verification Decision</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="verification_notes" class="form-label">Verification Notes</label>
+                    <textarea class="form-control" id="verification_notes" name="verification_notes" rows="3" placeholder="Add notes regarding your decision (these will be visible to the counselor)"></textarea>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <button type="submit" name="verification_status" value="verified" class="btn btn-success">
+                        <i class="bi bi-check-circle me-1"></i> Verify Counselor
+                    </button>
+                    <button type="submit" name="verification_status" value="rejected" class="btn btn-danger">
+                        <i class="bi bi-x-circle me-1"></i> Reject Application
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
 </div>
-
-{% block extra_js %}
-<script>
-    // Form submission confirmation
-    document.getElementById('verificationForm').addEventListener('submit', function(e) {
-        if (!confirm('Are you sure you want to submit this verification decision?')) {
-            e.preventDefault();
-        }
-    });
-
-    // Auto-resize bio content
-    const bioContent = document.querySelector('.bio-content');
-    if (bioContent.scrollHeight > 200) {
-        bioContent.style.maxHeight = '200px';
-        bioContent.style.overflowY = 'auto';
-    }
-</script>
-{% endblock %}
 {% endblock %}

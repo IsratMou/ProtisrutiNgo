@@ -113,6 +113,16 @@ class Assignment(models.Model):
         related_name='counselor_assignments',
         limit_choices_to={'user_type': 'counselor'}
     )
+
+    # Add other fields as needed, e.g. survivor, date_assigned, etc.
+
+    class Meta:
+        ordering = ['-id']  # Example: Ordering assignments by ID in descending order
+        verbose_name = 'Assignment'
+        verbose_name_plural = 'Assignments'
+
+        # Make sure there's no invalid attribute like 'Counselor' here
+
     survivor = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
