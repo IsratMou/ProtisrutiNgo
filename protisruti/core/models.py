@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 
 class CustomUserManager(BaseUserManager):
     """
@@ -85,3 +86,19 @@ class CounselorProfile(models.Model):
     
     def __str__(self):
         return f"{self.user.username}'s Profile"
+
+class IncidentReport(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='incident_report')
+    incident_details = models.TextField()
+    schedule_date = models.DateField()
+
+    def __str__(self):
+        return f"Incident Report for {self.user.username}"
+
+class CounselorAvailability(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='availability')
+    days_available = models.IntegerField()
+    category = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"Availability for {self.user.username}"

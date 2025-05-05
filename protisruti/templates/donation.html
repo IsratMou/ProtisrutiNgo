@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Donation - PROTISRUTI{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="content-box">
+                <h2>Make a Donation</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="submit" class="btn btn-primary">Confirm</button>
+                        <a href="{% url 'home' %}" class="btn btn-secondary">Back</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
