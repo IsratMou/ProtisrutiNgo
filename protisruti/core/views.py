@@ -5,7 +5,11 @@ from django.contrib import messages
 from django.views.generic import TemplateView
 from django.http import HttpResponse
 from .forms import SurvivorRegistrationForm, CounselorRegistrationForm, CustomLoginForm, CounselorAvailabilityForm, IncidentReportForm, DonationForm
+<<<<<<< HEAD
 from .models import CustomUser, IncidentReport, CounselorAvailability
+=======
+from .models import CustomUser
+>>>>>>> 860289cf76047db18ee215ffa04a0363f729ab43
 
 def home_view(request):
     """View for the homepage"""
@@ -80,6 +84,7 @@ def register_counselor_view(request):
 @login_required
 def user_dashboard(request):
     """View for survivor dashboard"""
+<<<<<<< HEAD
     try:
         # Fetch the existing incident report for the user
         incident_report = IncidentReport.objects.get(user=request.user)
@@ -111,12 +116,25 @@ def user_dashboard(request):
             'schedule_date': incident_report.schedule_date if incident_report else '',
         }
         form = IncidentReportForm(initial=initial_data)
+=======
+    if request.method == 'POST':
+        form = IncidentReportForm(request.POST)
+        if form.is_valid():
+            # Process the form data
+            incident_details = form.cleaned_data['incident_details']
+            # Save the data or perform any action (e.g., save to database)
+            messages.success(request, "Your incident report has been submitted. A counselor will contact you soon.")
+            return redirect('user_dashboard')
+    else:
+        form = IncidentReportForm()
+>>>>>>> 860289cf76047db18ee215ffa04a0363f729ab43
 
     return render(request, 'user_dashboard.html', {'form': form})
 
 @login_required
 def counselor_dashboard(request):
     """View for counselor dashboard"""
+<<<<<<< HEAD
     try:
         # Fetch the existing availability data for the counselor
         availability = CounselorAvailability.objects.get(user=request.user)
@@ -148,6 +166,18 @@ def counselor_dashboard(request):
             'category': availability.category if availability else '',
         }
         form = CounselorAvailabilityForm(initial=initial_data)
+=======
+    if request.method == 'POST':
+        form = CounselorAvailabilityForm(request.POST)
+        if form.is_valid():
+            # Process the form data
+            days_available = form.cleaned_data['days_available']
+            category = form.cleaned_data['category']
+            # Save the data or perform any action
+            return HttpResponse("Form submitted successfully!")
+    else:
+        form = CounselorAvailabilityForm()
+>>>>>>> 860289cf76047db18ee215ffa04a0363f729ab43
 
     return render(request, 'counselor_dashboard.html', {'form': form})
 

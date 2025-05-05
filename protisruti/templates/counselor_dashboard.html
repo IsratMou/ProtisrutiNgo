@@ -18,6 +18,7 @@
             </div>
         </div>
     </div>
+<<<<<<< HEAD
 
     <div class="container mt-5">
         <h2>Update Your Availability</h2>
@@ -30,5 +31,16 @@
             </div>
         </form>
     </div>
+=======
+</div>
+
+<div class="container mt-5">
+    <h1>Please Submit Your Information.</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+>>>>>>> 860289cf76047db18ee215ffa04a0363f729ab43
 </div>
 {% endblock %}

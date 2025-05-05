@@ -113,10 +113,15 @@ class CustomLoginForm(AuthenticationForm):
 class CounselorAvailabilityForm(forms.Form):
     DAYS_CHOICES = [(i, i) for i in range(1, 32)]  # Days in a month (1-31)
     CATEGORY_CHOICES = [
+<<<<<<< HEAD
         ('domestic_violence', 'Domestic Violence'),
         ('child_abuse', 'Child Abuse'),
         ('sexual_abuse', 'Sexual Abuse'),
         ('trauma', 'Trauma'),
+=======
+        ('heart', 'Heart'),
+        ('mental_health', 'Mental Health'),
+>>>>>>> 860289cf76047db18ee215ffa04a0363f729ab43
         ('general', 'General'),
     ]
 
@@ -141,6 +146,7 @@ class IncidentReportForm(forms.Form):
             'rows': 5
         }),
     )
+<<<<<<< HEAD
     schedule_date = forms.DateField(
         label="Schedule Counseling",
         widget=forms.DateInput(attrs={
@@ -148,6 +154,8 @@ class IncidentReportForm(forms.Form):
             'type': 'date'
         }),
     )
+=======
+>>>>>>> 860289cf76047db18ee215ffa04a0363f729ab43
 
 class DonationForm(forms.Form):
     donor_name = forms.CharField(
