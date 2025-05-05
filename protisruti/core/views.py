@@ -3,7 +3,8 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.generic import TemplateView
-from .forms import SurvivorRegistrationForm, CounselorRegistrationForm, CustomLoginForm
+from django.http import HttpResponse
+from .forms import SurvivorRegistrationForm, CounselorRegistrationForm, CustomLoginForm, CounselorAvailabilityForm, IncidentReportForm, DonationForm
 from .models import CustomUser
 
 def home_view(request):
@@ -41,6 +42,7 @@ def login_redirect_view(request):
         return redirect('counselor_dashboard')
     else:
         return redirect('home')
+
 def register_user_view(request):
     """View for survivor registration"""
     if request.method == 'POST':
@@ -74,14 +76,52 @@ def register_counselor_view(request):
     else:
         form = CounselorRegistrationForm()
     return render(request, 'register_counselor.html', {'form': form})
+
 @login_required
 def user_dashboard(request):
     """View for survivor dashboard"""
-    # This is a placeholder. You'll expand this later.
-    return render(request, 'user_dashboard.html')
+    if request.method == 'POST':
+        form = IncidentReportForm(request.POST)
+        if form.is_valid():
+            # Process the form data
+            incident_details = form.cleaned_data['incident_details']
+            # Save the data or perform any action (e.g., save to database)
+            messages.success(request, "Your incident report has been submitted. A counselor will contact you soon.")
+            return redirect('user_dashboard')
+    else:
+        form = IncidentReportForm()
+
+    return render(request, 'user_dashboard.html', {'form': form})
 
 @login_required
 def counselor_dashboard(request):
     """View for counselor dashboard"""
-    # This is a placeholder. You'll expand this later.
-    return render(request, 'counselor_dashboard.html')
+    if request.method == 'POST':
+        form = CounselorAvailabilityForm(request.POST)
+        if form.is_valid():
+            # Process the form data
+            days_available = form.cleaned_data['days_available']
+            category = form.cleaned_data['category']
+            # Save the data or perform any action
+            return HttpResponse("Form submitted successfully!")
+    else:
+        form = CounselorAvailabilityForm()
+
+    return render(request, 'counselor_dashboard.html', {'form': form})
+
+def donation_view(request):
+    """View for the donation form"""
+    if request.method == 'POST':
+        form = DonationForm(request.POST)
+        if form.is_valid():
+            # Process the donation data
+            donor_name = form.cleaned_data['donor_name']
+            amount = form.cleaned_data['amount']
+            method = form.cleaned_data['method']
+            # You can save this data to the database or process it further
+            messages.success(request, f"Thank you, {donor_name}, for your generous donation of BDT {amount} via {method}!")
+            return redirect('donation')
+    else:
+        form = DonationForm()
+
+    return render(request, 'donation.html', {'form': form})

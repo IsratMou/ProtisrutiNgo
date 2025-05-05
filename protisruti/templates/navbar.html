@@ -10,6 +10,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'home' %}">Home</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'donation' %}">Donation</a>
+                </li>
                 {% if user.is_authenticated %}
                     {% if user.is_survivor %}
                     <li class="nav-item">

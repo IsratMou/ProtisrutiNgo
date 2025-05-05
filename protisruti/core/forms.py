@@ -109,3 +109,62 @@ class CustomLoginForm(AuthenticationForm):
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'})
     )
+
+class CounselorAvailabilityForm(forms.Form):
+    DAYS_CHOICES = [(i, i) for i in range(1, 32)]  # Days in a month (1-31)
+    CATEGORY_CHOICES = [
+        ('heart', 'Heart'),
+        ('mental_health', 'Mental Health'),
+        ('general', 'General'),
+    ]
+
+    days_available = forms.IntegerField(
+        label="Days Available in a Month",
+        min_value=1,
+        max_value=31,
+        widget=forms.NumberInput(attrs={'class': 'form-control'}),
+    )
+    category = forms.ChoiceField(
+        label="Category",
+        choices=CATEGORY_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+
+class IncidentReportForm(forms.Form):
+    incident_details = forms.CharField(
+        label="Describe Your Incident",
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Write about your incident here...',
+            'rows': 5
+        }),
+    )
+
+class DonationForm(forms.Form):
+    donor_name = forms.CharField(
+        label="On Behalf Of",
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your name or organization name'
+        }),
+    )
+    amount = forms.DecimalField(
+        label="Amount (in BDT)",
+        max_digits=10,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter the amount you want to donate'
+        }),
+    )
+    method = forms.ChoiceField(
+        label="Payment Method",
+        choices=[
+            ('bkash', 'bKash'),
+            ('nagad', 'Nagad'),
+            ('bank', 'Bank Transfer'),
+        ],
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+

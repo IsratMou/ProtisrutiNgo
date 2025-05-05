@@ -11,5 +11,6 @@ urlpatterns = [
     path('register/user/', views.register_user_view, name='register_user'),
     path('register/counselor/', views.register_counselor_view, name='register_counselor'),
     path('dashboard/user/', views.user_dashboard, name='user_dashboard'),
-    path('dashboard/counselor/', views.counselor_dashboard, name='counselor_dashboard'),
+    path('counselor-dashboard/', views.counselor_dashboard, name='counselor_dashboard'),
+    path('donation/', views.donation_view, name='donation'),
 ]

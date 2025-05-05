@@ -18,20 +18,14 @@
             </div>
         </div>
     </div>
-    
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="content-box">
-                <h2>Your Dashboard</h2>
-                <p>This dashboard is currently under development. Soon you will be able to:</p>
-                <ul>
-                    <li>Manage your counseling sessions</li>
-                    <li>View assigned survivors</li>
-                    <li>Access professional resources</li>
-                    <li>Participate in counselor networks</li>
-                </ul>
-            </div>
-        </div>
-    </div>
+</div>
+
+<div class="container mt-5">
+    <h1>Please Submit Your Information.</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
 </div>
 {% endblock %}
